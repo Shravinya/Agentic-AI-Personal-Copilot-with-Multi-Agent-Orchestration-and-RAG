@@ -1,126 +1,316 @@
-# AI Personal Task Copilot
-
-An end-to-end **agentic AI assistant** built with **Google Gemini**, **LangGraph**, and **Streamlit**. The system routes user messages through specialized agents, uses tools for task management, supports **RAG** over uploaded PDFs, and exposes a **debug trace** so you can see how each step runs.
+# AI Personal Task Copilot – Multi-Agent Workflow & RAG System
 
 ## Overview
 
-This project is a learning-oriented **multi-agent copilot** that can:
+AI Personal Task Copilot is an end-to-end Agentic AI system built using Google Gemini, LangGraph, FAISS, and Streamlit. The application demonstrates a complete multi-agent workflow where user requests are intelligently routed through specialized agents for planning, task execution, document retrieval, and response synthesis.
 
-- **Plan and execute** task-related requests (add/list tasks via tools)
-- **Answer questions** from uploaded documents (chunk → embed → FAISS retrieval)
-- **Handle general chat** without documents or tools
-- **Stream** the final response in the UI
-- **Log every step** (agent, input/output, tools, state) in a sidebar debug panel
+The system combines conversational AI, task automation, Retrieval-Augmented Generation (RAG), tool-calling agents, and workflow orchestration into a single interactive application. It also provides full execution transparency through a debug panel that visualizes agent decisions, tool invocations, and workflow transitions.
 
-The design follows a clear pipeline: **Router → (Planner → Executor | RAG Agent | Chat) → Synthesizer → Streamed reply**.
+---
 
-## Features
+## Key Features
 
-| Feature | Description |
-|--------|-------------|
-| **Multi-agent routing** | Router classifies input as `task`, `rag`, or `chat` |
-| **Planner** | Breaks complex task requests into ordered steps |
-| **ReAct executor** | Thought → Action → Observation loop with `add_task`, `get_tasks`, `search_docs` |
-| **RAG pipeline** | PDF upload, text extraction, chunking, Gemini embeddings, FAISS search |
-| **LangGraph orchestration** | Shared state and conditional edges between agents |
-| **Streaming UI** | Token-by-token final answer via Gemini streaming API |
-| **Debug visibility** | Sidebar shows agent steps, tool calls, and state updates |
-| **Persistent tasks** | Tasks and chat history stored in `data/tasks.json` |
+### Multi-Agent Orchestration
+- Routes user requests through specialized agents using LangGraph.
+- Supports dynamic workflow execution based on query intent.
+- Enables planning, reasoning, retrieval, and synthesis across agents.
 
-## Architecture
-User (Streamlit) │ ▼ LangGraph: router ──┬── task → planner → executor (tools) ──┐ ├── rag → rag_agent (retrieve + LLM) ──┼──► synthesizer → stream final answer └── chat ───────────────────────────────┘
+### Intelligent Task Management
+- Create and manage personal tasks using tool-calling agents.
+- ReAct-based execution loop for autonomous decision-making.
+- Persistent task storage and retrieval.
 
-**Offline (sidebar):** PDF → ingest → FAISS index (`data/faiss.index`, `data/faiss_meta.json`)
-## Tech stack
-- **LLM & embeddings:** Google Gemini API (`google-generativeai`)
-- **Orchestration:** LangGraph
-- **UI:** Streamlit
-- **Vector search:** FAISS (`faiss-cpu`)
-- **PDF parsing:** PyMuPDF
-- **Config:** `python-dotenv`
-## Project structure
-├── app.py # Streamlit UI ├── config.py # Environment / API settings ├── test_gemini_api.py # API connectivity check ├── agents/ │ ├── router.py # Intent classification │ ├── planner.py # Step decomposition │ ├── rag_agent.py # Document Q&A │ ├── executor.py # ReAct tool loop │ └── synthesizer.py # Merge outputs for final prompt ├── tools/ │ ├── task_tools.py # add_task, get_tasks │ └── rag_tools.py # search_docs ├── rag/ │ ├── ingest.py # PDF → chunks → embeddings → FAISS │ └── retriever.py # Semantic search ├── graph/ │ └── langgraph_flow.py # Agent graph definition ├── memory/ │ └── store.py # JSON task + chat persistence └── utils/ ├── logger.py # Debug logging └── streaming.py # Gemini streaming helper
+### Retrieval-Augmented Generation (RAG)
+- Upload PDF documents and create searchable knowledge bases.
+- Uses Gemini Embeddings and FAISS vector search.
+- Provides context-aware answers grounded in uploaded documents.
 
-## Prerequisites
-- Python 3.10+
-- [Gemini API key](https://aistudio.google.com/apikey)
-## Setup
-1. **Clone the repository**
-   ```bash
-   git clone <your-repo-url>
-   cd "Agentic AI"
-Create a virtual environment
+### Conversational AI
+- Handles general-purpose chat and reasoning tasks.
+- Context-aware interactions powered by Google Gemini.
 
+### Workflow Observability
+- Real-time debugging sidebar.
+- Displays routing decisions, agent execution steps, tool calls, and outputs.
+- Improves explainability and transparency of AI workflows.
+
+### Streaming Responses
+- Token-by-token response generation.
+- Provides a smooth real-time conversational experience.
+
+---
+
+## System Architecture
+
+```text
+User (Streamlit UI)
+        │
+        ▼
+   Router Agent
+        │
+ ┌──────┼─────────┐
+ │      │         │
+ ▼      ▼         ▼
+Task   RAG      Chat
+Agent Agent    Agent
+ │      │
+ ▼      ▼
+Planner Retrieval
+ │
+ ▼
+Executor (Tools)
+ │
+ └───────────────┐
+                 ▼
+          Synthesizer
+                 │
+                 ▼
+       Streamed Final Response
+```
+
+---
+
+## Agent Workflow
+
+### 1. Router Agent
+- Classifies user intent into:
+  - Task
+  - RAG
+  - General Chat
+
+### 2. Planner Agent
+- Breaks complex task requests into executable steps.
+- Generates structured plans for downstream execution.
+
+### 3. Executor Agent
+- Uses a ReAct (Reason + Act) workflow.
+- Invokes tools such as:
+  - Add Task
+  - List Tasks
+  - Search Documents
+
+### 4. RAG Agent
+- Retrieves relevant document chunks from FAISS.
+- Generates responses grounded in uploaded PDFs.
+
+### 5. Synthesizer Agent
+- Combines outputs from all agents.
+- Produces a coherent final response.
+
+### 6. Streaming Layer
+- Streams the final response token-by-token to the UI.
+
+---
+
+## Tech Stack
+
+### AI & Agent Frameworks
+- LangGraph
+- LangChain
+- ReAct Agents
+
+### LLM & Embeddings
+- Google Gemini 2.5 Flash
+- Gemini Embeddings
+
+### Retrieval & Vector Search
+- FAISS
+- Retrieval-Augmented Generation (RAG)
+
+### Frontend
+- Streamlit
+
+### Backend
+- Python
+
+### Document Processing
+- PyMuPDF
+
+### Configuration & Utilities
+- Python Dotenv
+- JSON Storage
+
+---
+
+## Project Structure
+
+```text
+AI-Personal-Task-Copilot/
+│
+├── app.py
+├── config.py
+├── test_gemini_api.py
+│
+├── agents/
+│   ├── router.py
+│   ├── planner.py
+│   ├── executor.py
+│   ├── rag_agent.py
+│   └── synthesizer.py
+│
+├── graph/
+│   └── langgraph_flow.py
+│
+├── rag/
+│   ├── ingest.py
+│   └── retriever.py
+│
+├── tools/
+│   ├── task_tools.py
+│   └── rag_tools.py
+│
+├── memory/
+│   └── store.py
+│
+├── utils/
+│   ├── logger.py
+│   └── streaming.py
+│
+└── data/
+    ├── tasks.json
+    ├── faiss.index
+    └── faiss_meta.json
+```
+
+---
+
+## Installation
+
+### Clone Repository
+
+```bash
+git clone <repository-url>
+cd AI-Personal-Task-Copilot
+```
+
+### Create Virtual Environment
+
+```bash
 python -m venv .venv
-# Windows
-.\.venv\Scripts\activate
-# macOS/Linux
+```
+
+### Activate Environment
+
+#### Windows
+
+```bash
+.venv\Scripts\activate
+```
+
+#### Linux / macOS
+
+```bash
 source .venv/bin/activate
-Install dependencies
+```
 
+### Install Dependencies
+
+```bash
 pip install -r requirements.txt
-Configure environment
+```
 
-Create a .env file in the project root:
+---
 
-GEMINI_API_KEY=your_api_key_here
+## Environment Configuration
+
+Create a `.env` file:
+
+```env
+GEMINI_API_KEY=YOUR_API_KEY
 GEMINI_MODEL=gemini-2.5-flash
 GEMINI_EMBEDDING_MODEL=models/gemini-embedding-001
-Never commit .env or API keys. Use .env.example with placeholder values only.
+```
 
-Verify the API
+---
 
-python test_gemini_api.py
-Run the app
+## Run Application
 
+```bash
 streamlit run app.py
-Usage
-Open the app in your browser (Streamlit default: http://localhost:8501).
-Upload a PDF in the sidebar and click Index PDF for document Q&A.
-Use the chat box for tasks, document questions, or general chat.
-Open the Debug trace sidebar to inspect routing, planner steps, tool calls, and RAG steps.
-Example prompts
-Prompt	Expected route
-Add task to study graphs
-task → planner → executor
-Show my tasks
-task → executor
-Summarize the uploaded PDF
-rag
-Plan my DSA prep using this document
-task (may use search_docs)
-Explain binary search
-chat
-How agents work (short)
-Router — Gemini returns JSON: task | rag | chat.
-Planner (task only) — Returns a list of steps as hints for the executor.
-Executor (task only) — ReAct loop: model chooses tools or a final answer; Python runs tools and feeds observations back.
-RAG agent (rag only) — Retrieves top chunks from FAISS, then answers with Gemini using only those excerpts.
-Synthesizer — Builds one prompt from all prior outputs (no extra LLM call).
-Streaming — Final user-facing reply is generated and streamed in the UI.
-Data & storage
-Path	Purpose
-data/tasks.json
-Tasks and chat history
-data/faiss.index
-Vector index
-data/faiss_meta.json
-Chunk text metadata
-Security notes
-Keep GEMINI_API_KEY in .env only; add .env to .gitignore.
-Rotate keys if they were ever shared publicly.
-Uploaded PDFs are processed locally; index files stay under data/.
-Limitations
-Final answer streaming runs after the LangGraph pass (agent steps are not streamed).
-One FAISS index per project (re-indexing replaces the previous PDF index).
-Uses the legacy google-generativeai SDK (Google recommends migrating to google.genai long term).
-Future ideas
-Calendar integration
-Voice input
-Multi-user / per-user indexes
-Migrate to google.genai SDK
-License
-Add your license here (e.g. MIT).
+```
 
-Author
-Your name / team — add links as needed.
+---
+
+## Example Prompts
+
+### Task Management
+
+```text
+Add a task to complete DSA practice
+```
+
+```text
+Show all my pending tasks
+```
+
+### RAG Queries
+
+```text
+Summarize the uploaded document
+```
+
+```text
+What are the key findings mentioned in the PDF?
+```
+
+### General Chat
+
+```text
+Explain Binary Search
+```
+
+```text
+How does LangGraph work?
+```
+
+---
+
+## Resume Description
+
+### Project Title
+**Agentic AI Personal Copilot with Multi-Agent Orchestration and RAG**
+
+### Resume Points
+
+- Built an end-to-end multi-agent AI system using LangGraph for dynamic routing, planning, tool execution, and response synthesis across conversational, task automation, and document intelligence workflows.
+- Developed a Retrieval-Augmented Generation (RAG) pipeline using Gemini Embeddings and FAISS vector search, enabling accurate PDF-based question answering with contextual retrieval and grounded reasoning.
+- Integrated ReAct-based tool-calling agents, real-time response streaming, and workflow observability dashboards to improve transparency, explainability, and user experience.
+
+### Tech Stack
+
+```text
+Python, LangGraph, LangChain, Google Gemini, Gemini Embeddings,
+FAISS, Streamlit, Retrieval-Augmented Generation (RAG),
+ReAct Agents, Multi-Agent Systems, Vector Search,
+PyMuPDF, JSON Storage
+```
+
+---
+
+## Future Enhancements
+
+- Calendar Integration
+- Voice-Based Interaction
+- Multi-User Support
+- Persistent Memory Layer
+- MCP Integration
+- Cloud Deployment
+- Agent Evaluation Framework
+- Long-Term Memory Management
+- Migration to Google GenAI SDK
+
+---
+
+## License
+
+```text
+MIT License
+```
+
+---
+
+## Author
+
+**Gadeela Shravinya**
+
+AI Agentic Engineer | LangGraph | LangChain | Multi-Agent Systems | RAG | Python
